@@ -1,0 +1,229 @@
+namespace _01.RedBlackTree
+{
+    using System;
+
+    public class RedBlackTree<T> where T : IComparable
+    {
+        private const bool Red = true;
+        private const bool Black = false;
+        public class Node
+        {
+            public Node(T value)
+            {
+                this.Value = value;
+                this.Colour = Red;
+            }
+
+            public T Value { get; set; }
+            public Node Left { get; set; }
+            public Node Right { get; set; }
+            public bool Colour { get; set; }
+        }
+
+        public Node root;
+
+        public RedBlackTree()
+        {
+
+        }
+
+        public void EachInOrder(Action<T> action)
+        {
+            this.EachInOrder(this.root, action);
+        }
+        private void EachInOrder(Node node, Action<T> action)
+        {
+            if (node == null)
+            {
+                return;
+            }
+
+            this.EachInOrder(node.Left, action);
+            action(node.Value);
+            this.EachInOrder(node.Right, action);
+        }
+        public RedBlackTree<T> Search(T element)
+        {
+            Node current = this.FindElement(element);
+
+            return new BinarySearchTree<T>(current);
+        }
+
+        public void Insert(T value)
+        {
+            this.root = this.Insert(this.root, value);
+        }
+        private Node Insert(T element, Node node)
+        {
+            if (node == null)
+            {
+                node = new Node(element);
+            }
+            else if (element.CompareTo(node.Value) < 0)
+            {
+                node.Left = this.Insert(element, node.Left);
+            }
+            else if (element.CompareTo(node.Value) > 0)
+            {
+                node.Right = this.Insert(element, node.Right);
+            }
+
+            node.Count = 1 + this.Count(node.Left) + this.Count(node.Right);
+            return node;
+        }
+        public void Delete(T key)
+        {
+            if (this.root == null)
+            {
+                throw new InvalidOperationException();
+            }
+            this.root = this.Delete(element, this.root);
+        }
+        private Node Delete(T element, Node node)
+        {
+            if (node == null)
+            {
+                return null;
+            }
+
+            int compare = element.CompareTo(node.Value);
+
+            if (compare < 0)
+            {
+                node.Left = this.Delete(element, node.Left);
+            }
+            else if (compare > 0)
+            {
+                node.Right = this.Delete(element, node.Right);
+            }
+            else
+            {
+                if (node.Right == null)
+                {
+                    return node.Left;
+                }
+                if (node.Left == null)
+                {
+                    return node.Right;
+                }
+
+                Node temp = node;
+                node = this.FindMin(temp.Right);
+                node.Right = this.DeleteMin(temp.Right);
+                node.Left = temp.Left;
+
+            }
+            node.Count = this.Count(node.Left) + this.Count(node.Right) + 1;
+
+            return node;
+        }
+
+
+        public void DeleteMin()
+        {
+            if (this.root == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            this.root = this.DeleteMin(this.root);
+        }
+        private Node DeleteMin(Node node)
+        {
+            if (node.Left == null)
+            {
+                return node.Right;
+            }
+
+            node.Left = this.DeleteMin(node.Left);
+            node.Count = 1 + this.Count(node.Left) + this.Count(node.Right);
+
+            return node;
+        }
+
+        public void DeleteMax()
+        {
+            if (this.root == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            this.root = this.DeleteMax(this.root);
+        }
+
+        private Node DeleteMax(Node node)
+        {
+            if (node.Right == null)
+            {
+                return node.Left;
+            }
+
+            node.Right = this.DeleteMax(node.Right);
+            node.Count = 1 + this.Count(node.Left) + this.Count(node.Right);
+
+            return node;
+        }
+
+
+        public int Count()
+        {
+            return this.Count(this.root);
+        }
+        private int Count(Node node)
+        {
+            if (node == null)
+            {
+                return 0;
+            }
+
+            return node.Count;
+        }
+
+        // rotations
+        private Node RotateLeft(Node node)
+        {
+            var temp = node.Right;
+            node.Right = temp.Right;
+            temp.Left = node;
+            temp.Colour = temp.Left.Colour;
+            temp.Left.Colour = Red;
+
+        }
+        private Node RotateRight(Node node)
+        {
+            var temp = node.Left; // temporary node that embodies the current node
+            node.Left = temp.Right;
+            temp.Right = node;
+            temp.Colour = temp.Right.Colour;
+            temp.Right.Colour = Red;
+
+            return temp;
+        }
+        public void FlipColours(Node node)
+        {
+            node.Colour = !node.Colour;
+            node.Left.Colour = !node.Left.Colour;
+            node.Right.Colour = !node.Right.Colour;
+        }
+
+        public bool IsRed(Node node)
+        {
+            if (node == null)
+            {
+                return false;
+            }
+            return node.Colour == Red;
+        }
+
+
+        // checkers
+        private bool IsLesser(T a, T b)
+        {
+            return a.CompareTo(b) > 0;
+        }
+        private bool AreEqual(T a, T b)
+        {
+            return a.CompareTo(b) == 0;
+        }
+    }
+}
